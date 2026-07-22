@@ -3,96 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Service App - Web</title>
+    <title>Food Service App - Selenium Test Ready</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #FF5722; --bg: #F8F9FA; }
-        body { margin: 0; background: #121212; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
-        .phone { width: 375px; height: 750px; background: white; border: 10px solid #333; border-radius: 40px; position: relative; overflow: hidden; }
-        .screen { display: none; height: 100%; width: 100%; position: absolute; flex-direction: column; overflow-y: auto; background: var(--bg); }
-        .active { display: flex !important; }
-        #splash { background: var(--primary); color: white; justify-content: center; align-items: center; z-index: 5000; text-align: center; }
-        #login { padding: 30px; justify-content: center; align-items: center; background: linear-gradient(180deg, #FF5722 0%, #E64A19 100%); }
-        .card { background: white; margin: 15px; padding: 20px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
-        .btn { background: var(--primary); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        .input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; outline: none; box-sizing: border-box; }
-        .bottom-nav { position: absolute; bottom: 0; width: 100%; height: 70px; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-        .nav-tab { color: #999; font-size: 10px; text-align: center; cursor: pointer; }
-        .nav-tab.active { color: var(--primary); }
-        .nav-tab i { font-size: 20px; display: block; margin-bottom: 4px; }
+        :root { --primary: #FF5722; --dark: #212529; --bg: #f4f7f6; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--dark); display: flex; justify-content: center; align-items: center; height: 100vh; }
+
+        /* App Container */
+        #phone-emulator { width: 400px; height: 800px; background: white; border: 12px solid #333; border-radius: 40px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+
+        .screen { display: none; flex-direction: column; height: 100%; width: 100%; position: absolute; background: var(--bg); overflow-y: auto; }
+        .screen.active { display: flex; }
+
+        /* Component Styles */
+        .header { padding: 20px; background: white; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; position: sticky; top:0; z-index:100; }
+        .scroll-area { flex: 1; padding: 15px; padding-bottom: 80px; }
+        .card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; }
+
+        /* Nav */
+        .bottom-nav { height: 70px; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; align-items: center; position: absolute; bottom: 0; width: 100%; }
+        .nav-item { color: #999; text-align: center; font-size: 10px; cursor: pointer; flex: 1; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
+
+        /* Splash */
+        #splash { background: var(--primary); color: white; justify-content: center; align-items: center; z-index: 1000; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: var(--dark); color: white; padding: 10px; border-radius: 12px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="phone">
-        <!-- 1. SPLASH -->
-        <div id="splash" class="screen active">
-            <i class="fas fa-utensils" style="font-size: 70px; margin-bottom: 20px;"></i>
-            <h2 style="letter-spacing: 2px;">FOOD SERVICE</h2>
-            <button id="skip-btn" onclick="startNow()" style="margin-top: 50px; background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 10px 20px; border-radius: 20px; cursor: pointer; display: none;">ENTER APP</button>
+    <div id="phone-emulator">
+
+        <!-- 1. SPLASH (ID: splash-screen) -->
+        <div id="splash-screen" class="screen active">
+            <i class="fas fa-utensils" style="font-size: 80px; margin-bottom: 20px;"></i>
+            <h2>FOOD SERVICE</h2>
+            <button id="btn-skip-splash" onclick="initApp()" style="margin-top: 50px; background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 8px 20px; border-radius: 20px; cursor: pointer;">ENTER</button>
         </div>
 
-        <!-- 2. LOGIN -->
-        <div id="login" class="screen">
-            <div style="background: white; padding: 30px; border-radius: 30px; text-align: center; width: 90%;">
-                <h2 style="margin:0;">Login</h2>
-                <input type="email" id="email" class="input" placeholder="Email (hoteladmin@gmail.com)">
-                <input type="password" id="pass" class="input" placeholder="Password">
-                <button class="btn" onclick="doLogin()">LOGIN</button>
+        <!-- 2. LOGIN (ID: login-screen) -->
+        <div id="login-screen" class="screen" style="justify-content:center; padding: 30px; background: var(--primary);">
+            <div style="background:white; padding: 30px; border-radius: 25px; text-align: center;">
+                <h3>Login</h3>
+                <input type="email" id="login-email" class="input" placeholder="Email">
+                <input type="password" id="login-password" class="input" placeholder="Password">
+                <button id="btn-login" class="btn btn-primary" onclick="doLogin()">LOGIN</button>
+                <p id="login-error" style="color:red; font-size: 10px; margin-top: 10px;"></p>
             </div>
         </div>
 
-        <!-- 3. HOME -->
-        <div id="home" class="screen">
-            <div style="padding: 20px; background: white; border-bottom: 1px solid #eee; position: sticky; top:0; z-index:10;"><b>Nearby Food</b></div>
-            <div id="food-list" style="padding-bottom: 80px;"></div>
+        <!-- 3. USER HOME (ID: home-screen) -->
+        <div id="home-screen" class="screen">
+            <div class="header"><b>Available Food</b> <i class="fas fa-search"></i></div>
+            <div id="food-list-container" class="scroll-area"></div>
             <div class="bottom-nav">
-                <div class="nav-tab active" onclick="show('home')"><i class="fas fa-home"></i>Home</div>
-                <div class="nav-tab" onclick="show('alerts')"><i class="fas fa-bell"></i>Alerts</div>
-                <div class="nav-tab" onclick="show('profile')"><i class="fas fa-user"></i>Profile</div>
+                <div class="nav-item active" onclick="navigateTo('home-screen')"><i class="fas fa-home"></i>Home</div>
+                <div class="nav-item" id="nav-to-alerts" onclick="navigateTo('alerts-screen')"><i class="fas fa-bell"></i>Alerts</div>
+                <div class="nav-item" id="nav-to-profile" onclick="navigateTo('profile-screen')"><i class="fas fa-user"></i>Profile</div>
             </div>
         </div>
 
-        <!-- 4. ADMIN -->
-        <div id="admin" class="screen">
-            <div style="padding: 20px; background: #212529; color: white; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index:10;">
-                <b>Admin Panel</b>
-                <i class="fas fa-plus-circle" style="color: var(--primary); font-size: 24px;" onclick="show('upload')"></i>
-            </div>
-            <div id="admin-list" style="padding-bottom: 80px;"></div>
-        </div>
-
-        <!-- 5. UPLOAD -->
-        <div id="upload" class="screen">
-            <div style="padding: 20px; border-bottom: 1px solid #eee;"><i class="fas fa-arrow-left" onclick="show('admin')" style="margin-right: 15px;"></i><b>Upload Food</b></div>
-            <div style="padding: 20px;">
-                <input type="text" id="up-n" class="input" placeholder="Food Name">
-                <input type="text" id="up-q" class="input" placeholder="Quantity">
-                <input type="text" id="up-h" class="input" placeholder="Hotel Name">
-                <button class="btn" onclick="doUpload()">PUBLISH</button>
+        <!-- 4. ADMIN DASHBOARD (ID: admin-screen) -->
+        <div id="admin-screen" class="screen">
+            <div class="header"><b>Admin Console</b> <i class="fas fa-plus-circle" id="btn-open-upload" onclick="navigateTo('upload-screen')" style="color:var(--primary); font-size: 24px;"></i></div>
+            <div class="scroll-area">
+                <div class="stats-grid">
+                    <div class="stat-card"><small>Total</small><br><b id="admin-stat-total">0</b></div>
+                    <div class="stat-card"><small>Claimed</small><br><b id="admin-stat-claimed">0</b></div>
+                </div>
+                <div id="admin-food-list"></div>
+                <button id="btn-admin-logout" onclick="doLogout()" style="margin-top: 20px; color: gray; border: none; background: none; width: 100%;">Logout</button>
             </div>
         </div>
 
-        <!-- 6. ALERTS -->
-        <div id="alerts" class="screen">
-            <div style="padding: 20px; border-bottom: 1px solid #eee;"><b>Notifications</b></div>
-            <div id="notif-list" style="padding: 20px;"></div>
-            <div id="nav-c1" class="bottom-nav"></div>
+        <!-- 5. UPLOAD (ID: upload-screen) -->
+        <div id="upload-screen" class="screen">
+            <div class="header"><i class="fas fa-arrow-left" onclick="navigateTo('admin-screen')"></i><b>Upload Food</b></div>
+            <div class="scroll-area">
+                <input type="text" id="up-food-name" class="input" placeholder="Food Name">
+                <input type="text" id="up-quantity" class="input" placeholder="Quantity">
+                <input type="text" id="up-expiry" class="input" placeholder="Expiry">
+                <input type="text" id="up-hotel" class="input" placeholder="Hotel Name">
+                <button id="btn-publish" class="btn btn-primary" onclick="doUpload()">PUBLISH</button>
+            </div>
         </div>
 
-        <!-- 7. PROFILE -->
-        <div id="profile" class="screen">
-            <div style="padding: 20px; border-bottom: 1px solid #eee;"><b>My Profile</b></div>
-            <div style="padding: 30px; text-align: center;">
-                <div style="width:80px; height:80px; background: var(--primary); color:white; border-radius:50%; margin:auto; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:bold;" id="u-icon">U</div>
-                <h3 id="u-email" style="margin-top:15px;">User</h3>
-                <button onclick="auth.signOut().then(()=>location.reload())" style="color: red; background: none; border: none; font-weight: bold; margin-top: 30px; cursor: pointer;">LOGOUT</button>
-            </div>
-            <div id="nav-c2" class="bottom-nav"></div>
+        <!-- 6. ALERTS (ID: alerts-screen) -->
+        <div id="alerts-screen" class="screen">
+            <div class="header"><b>Notifications</b></div>
+            <div id="notifications-list" class="scroll-area"></div>
+            <div class="bottom-nav" id="nav-placeholder-1"></div>
         </div>
+
+        <!-- 7. PROFILE (ID: profile-screen) -->
+        <div id="profile-screen" class="screen">
+            <div class="header"><b>My Profile</b></div>
+            <div class="scroll-area" style="text-align: center;">
+                <div style="width:70px; height:70px; background:var(--primary); color:white; border-radius:50%; margin:auto; display:flex; align-items:center; justify-content:center; font-size:24px;" id="user-initial">U</div>
+                <h4 id="user-email-text">User Email</h4>
+                <hr>
+                <div id="user-claim-history" style="text-align: left; margin-top: 20px;"></div>
+                <button id="btn-logout" class="btn" style="background:#eee; margin-top: 20px;" onclick="doLogout()">LOGOUT</button>
+            </div>
+            <div class="bottom-nav" id="nav-placeholder-2"></div>
+        </div>
+
+        <!-- 8. DETAIL MODAL (ID: detail-modal) -->
+        <div id="detail-overlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.5); z-index:500; align-items:flex-end;">
+            <div style="background:white; width:100%; padding:30px; border-radius:30px 30px 0 0; animation: slideUp 0.3s ease;">
+                <h2 id="det-food-name">Food</h2>
+                <p id="det-hotel-name" style="color:var(--primary)">Hotel</p>
+                <p><b>Quantity:</b> <span id="det-qty"></span></p>
+                <p><b>Expires:</b> <span id="det-exp"></span></p>
+                <button id="btn-confirm-claim" class="btn btn-primary" onclick="confirmClaim()">CLAIM NOW</button>
+                <button class="btn" style="background:#eee; margin-top:10px;" onclick="closeDetails()">CANCEL</button>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -106,79 +143,108 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Show skip button after 4s
-        setTimeout(() => { document.getElementById('skip-btn').style.display = 'inline-block'; }, 4000);
+        let selectedId = null;
 
-        function show(id) {
-            console.log("Showing screen:", id);
+        function navigateTo(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
 
-            if(['home', 'alerts', 'profile'].includes(id)) {
-                const nav = document.querySelector('#home .bottom-nav').innerHTML;
-                document.getElementById('nav-c1').innerHTML = nav;
-                document.getElementById('nav-c2').innerHTML = nav;
-                const idx = id==='home'?0:id==='alerts'?1:2;
-                document.querySelectorAll('.bottom-nav').forEach(b => {
-                    [...b.children].forEach(c => c.classList.remove('active'));
-                    b.children[idx].classList.add('active');
+            if(['home-screen', 'alerts-screen', 'profile-screen'].includes(id)) {
+                const nav = document.querySelector('#home-screen .bottom-nav').innerHTML;
+                document.getElementById('nav-placeholder-1').innerHTML = nav;
+                document.getElementById('nav-placeholder-2').innerHTML = nav;
+                const idx = id === 'home-screen' ? 0 : id === 'alerts-screen' ? 1 : 2;
+                document.querySelectorAll('.bottom-nav').forEach(bn => {
+                    [...bn.children].forEach(c => c.classList.remove('active'));
+                    bn.children[idx].classList.add('active');
                 });
             }
         }
 
-        function startNow() {
-            document.getElementById('splash').classList.remove('active');
+        function initApp() {
+            document.getElementById('splash-screen').classList.remove('active');
             auth.onAuthStateChanged(user => {
-                if (user) {
-                    document.getElementById('u-email').innerText = user.email;
-                    document.getElementById('u-icon').innerText = user.email[0].toUpperCase();
-                    user.email === 'hoteladmin@gmail.com' ? show('admin') : show('home');
+                if(user) {
+                    document.getElementById('user-email-text').innerText = user.email;
+                    document.getElementById('user-initial').innerText = user.email[0].toUpperCase();
+                    user.email === 'hoteladmin@gmail.com' ? navigateTo('admin-screen') : navigateTo('home-screen');
                     startSync();
-                } else { show('login'); }
+                } else { navigateTo('login-screen'); }
             });
         }
-
-        // Auto-entry
-        setTimeout(startNow, 2000);
+        setTimeout(initApp, 2500);
 
         async function doLogin() {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('pass').value;
-            try { await auth.signInWithEmailAndPassword(e, p); } catch(err) { alert(err.message); }
+            const e = document.getElementById('login-email').value;
+            const p = document.getElementById('login-password').value;
+            try { await auth.signInWithEmailAndPassword(e, p); } catch(err) { document.getElementById('login-error').innerText = err.message; }
         }
+
+        function doLogout() { auth.signOut().then(() => location.reload()); }
 
         function startSync() {
             db.collection("foods").orderBy("createdAt", "desc").onSnapshot(snap => {
-                const h = document.getElementById('food-list'), a = document.getElementById('admin-list');
-                h.innerHTML = ""; a.innerHTML = "";
+                const uList = document.getElementById('food-list-container');
+                const aList = document.getElementById('admin-food-list');
+                uList.innerHTML = ""; aList.innerHTML = "";
+                let total = 0, claimed = 0;
+
                 snap.forEach(doc => {
                     const f = doc.data(), id = doc.id;
-                    const card = `<div class="card">
-                        <span style="float:right; font-size:10px; font-weight:bold; color:${f.status==='available'?'green':'red'}">${f.status.toUpperCase()}</span>
-                        <h3 style="margin:0;">${f.foodName}</h3>
-                        <p style="color:#666; font-size:14px; margin:5px 0;">📍 ${f.hotelName}</p>
-                        ${f.status==='available'?'<button class="btn" style="padding:8px; font-size:12px;" onclick="claim(\''+id+'\',\''+f.foodName+'\',\''+f.hotelName+'\')">CLAIM</button>':''}
+                    total++; if(f.status === 'claimed') claimed++;
+
+                    const card = `<div class="card" id="food-${id}" onclick="openDetails('${id}','${f.foodName}','${f.hotelName}','${f.quantity}','${f.expiry}')">
+                        <span style="float:right; font-size:10px; color:${f.status==='available'?'green':'red'}">${f.status.toUpperCase()}</span>
+                        <b>${f.foodName}</b><br><small>📍 ${f.hotelName}</small>
                     </div>`;
-                    if(f.status === 'available') h.innerHTML += card;
-                    a.innerHTML += `<div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-                        <div><b>${f.foodName}</b><br><small>${f.status}</small></div>
-                        <i class="fas fa-trash" style="color:red; cursor:pointer;" onclick="db.collection('foods').doc('${id}').delete()"></i>
+
+                    if(f.status === 'available') uList.innerHTML += card;
+                    aList.innerHTML += `<div class="card" id="admin-food-${id}">
+                        <b>${f.foodName}</b> <i class="fas fa-trash" style="float:right; color:red" onclick="db.collection('foods').doc('${id}').delete()"></i>
+                        <br><small>${f.status}</small>
                     </div>`;
+                });
+                document.getElementById('admin-stat-total').innerText = total;
+                document.getElementById('admin-stat-claimed').innerText = claimed;
+            });
+
+            db.collection("notifications").orderBy("time", "desc").limit(5).onSnapshot(snap => {
+                const list = document.getElementById('notifications-list'); list.innerHTML = "";
+                snap.forEach(doc => {
+                    const n = doc.data();
+                    list.innerHTML += `<div class="card" style="border-left-color:orange"><b>${n.title}</b><br><small>${n.message}</small></div>`;
                 });
             });
         }
 
-        async function claim(id, name, hotel) {
-            await db.collection("foods").doc(id).update({ status: 'claimed' });
+        function openDetails(id, name, hotel, qty, exp) {
+            selectedId = id;
+            document.getElementById('det-food-name').innerText = name;
+            document.getElementById('det-hotel-name').innerText = hotel;
+            document.getElementById('det-qty').innerText = qty;
+            document.getElementById('det-exp').innerText = exp;
+            document.getElementById('detail-overlay').style.display = 'flex';
+        }
+
+        function closeDetails() { document.getElementById('detail-overlay').style.display = 'none'; }
+
+        async function confirmClaim() {
+            const name = document.getElementById('det-food-name').innerText;
+            const hotel = document.getElementById('det-hotel-name').innerText;
+            await db.collection("foods").doc(selectedId).update({ status: 'claimed' });
             await db.collection("claimedFoods").add({ foodName: name, hotelName: hotel, user: auth.currentUser.email, time: Date.now() });
-            alert("Claimed!");
+            await db.collection("notifications").add({ title: "Claimed!", message: name + " claimed", time: Date.now() });
+            alert("Claimed!"); closeDetails();
         }
 
         async function doUpload() {
-            const n = document.getElementById('up-n').value, q = document.getElementById('up-q').value, h = document.getElementById('up-h').value;
-            if(!n || !h) return alert("Fill fields");
-            await db.collection("foods").add({ foodName: n, quantity: q, hotelName: h, status: 'available', createdAt: Date.now() });
-            alert("Published!"); show('admin');
+            const n = document.getElementById('up-food-name').value;
+            const q = document.getElementById('up-quantity').value;
+            const e = document.getElementById('up-expiry').value;
+            const h = document.getElementById('up-hotel').value;
+            if(!n || !h) return alert("Required");
+            await db.collection("foods").add({ foodName: n, quantity: q, expiry: e, hotelName: h, status: 'available', createdAt: Date.now() });
+            alert("Published!"); navigateTo('admin-screen');
         }
     </script>
 </body>
