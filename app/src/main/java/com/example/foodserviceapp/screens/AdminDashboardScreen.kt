@@ -8,6 +8,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -15,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.firestore.FirebaseFirestore
 
 data class AdminFoodItem(
+    val id: String,
     val foodName: String,
     val quantity: String,
     val expiry: String,
@@ -24,12 +28,10 @@ data class AdminFoodItem(
 
 @Composable
 fun AdminDashboardScreen() {
-
     val db = FirebaseFirestore.getInstance()
-
-    var foodList by remember {
-        mutableStateOf(listOf<AdminFoodItem>())
-    }
+    var foodList by remember { mutableStateOf(listOf<AdminFoodItem>()) }
+    
+    // ... rest of state
     val totalFoods = foodList.size
     val availableFoods = foodList.count { it.status == "available" }
     val claimedFoods = foodList.count { it.status == "claimed" }
@@ -46,6 +48,7 @@ fun AdminDashboardScreen() {
                 for (document in result) {
                     items.add(
                         AdminFoodItem(
+                            id = document.id,
                             foodName = document.getString("foodName") ?: "",
                             quantity = document.getString("quantity") ?: "",
                             expiry = document.getString("expiry") ?: "",
@@ -164,6 +167,21 @@ fun AdminDashboardScreen() {
                         Text(text = "Quantity: ${food.quantity}")
                         Text(text = "Available Till: ${food.expiry}")
                         Text(text = "Status: ${food.status}")
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        IconButton(
+                            onClick = {
+                                db.collection("foods").document(food.id).delete()
+                            },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = Color.Red
+                            )
+                        }
                     }
                 }
             }

@@ -13,9 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -34,6 +36,7 @@ fun FoodDetailScreen(
     var quantity by remember { mutableStateOf("") }
     var distance by remember { mutableStateOf("") }
     var expiry by remember { mutableStateOf("") }
+    var imageUrl by remember { mutableStateOf("") }
 
     LaunchedEffect(foodId) {
         db.collection("foods")
@@ -45,6 +48,7 @@ fun FoodDetailScreen(
                 quantity = document.getString("quantity") ?: ""
                 distance = document.getString("distance") ?: ""
                 expiry = document.getString("expiry") ?: ""
+                imageUrl = document.getString("imageUrl") ?: ""
             }
     }
 
@@ -74,18 +78,27 @@ fun FoodDetailScreen(
                 shape = RoundedCornerShape(24.dp),
                 elevation = CardDefaults.cardElevation(4.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0xFFE9ECEF)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.Restaurant,
+                if (imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = imageUrl,
                         contentDescription = null,
-                        modifier = Modifier.size(80.dp),
-                        tint = Color.Gray
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFE9ECEF)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Restaurant,
+                            contentDescription = null,
+                            modifier = Modifier.size(80.dp),
+                            tint = Color.Gray
+                        )
+                    }
                 }
             }
 

@@ -2,19 +2,30 @@ package com.example.foodserviceapp.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.foodserviceapp.components.BottomBar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import androidx.compose.foundation.layout.statusBarsPadding
+
+data class ClaimedFoodHistory(
+    val name: String,
+    val hotel: String,
+    val date: String
+)
 
 @Composable
 fun ProfileScreen(
@@ -26,94 +37,111 @@ fun ProfileScreen(
     val db = FirebaseFirestore.getInstance()
     val userEmail = auth.currentUser?.email ?: "User"
 
-    var claimedFoods by remember {
-        mutableStateOf(listOf<String>())
+    var claimedHistory by remember {
+        mutableStateOf(listOf<ClaimedFoodHistory>())
     }
 
     LaunchedEffect(Unit) {
         db.collection("claimedFoods")
             .whereEqualTo("user", userEmail)
             .addSnapshotListener { result, error ->
-
-                if (error != null || result == null) {
-                    return@addSnapshotListener
+                if (error != null || result == null) return@addSnapshotListener
+                
+                val history = result.map { doc ->
+                    ClaimedFoodHistory(
+                        name = doc.getString("foodName") ?: "Unknown Food",
+                        hotel = doc.getString("hotelName") ?: "Unknown Hotel",
+                        date = "Recently Claimed"
+                    )
                 }
-                val foods = mutableListOf<String>()
-
-                for (document in result) {
-                    foods.add(document.getString("foodName") ?: "Claimed Food")
-                }
-
-                claimedFoods = foods
+                claimedHistory = history
             }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-            .padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Card(
-            shape = CircleShape,
-            modifier = Modifier.size(120.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
-                    .background(Color.LightGray),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "User", fontSize = 24.sp)
-            }
+    Scaffold(
+        bottomBar = {
+            BottomBar(
+                onHomeClick = onHomeClick,
+                onAlertClick = onAlertClick,
+                onProfileClick = { }
+            )
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(text = "Profile", fontSize = 30.sp)
-        Text(text = userEmail, fontSize = 18.sp, color = Color.Gray)
-
-        Spacer(modifier = Modifier.height(30.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp)
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(Color(0xFFF8F9FA))
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(text = "Claimed Foods", fontSize = 24.sp)
+            Surface(
+                modifier = Modifier.size(100.dp),
+                shape = CircleShape,
+                color = Color(0xFFFF5722).copy(alpha = 0.1f)
+            ) {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.padding(20.dp),
+                    tint = Color(0xFFFF5722)
+                )
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                if (claimedFoods.isEmpty()) {
-                    Text(text = "No claimed foods yet")
-                } else {
-                    claimedFoods.forEach { food ->
-                        Text(text = "• $food")
+            Text(text = userEmail, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(text = "Food Hero", fontSize = 14.sp, color = Color.Gray)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.History, contentDescription = null, tint = Color.Gray)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "Claim History", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(claimedHistory) { item ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = item.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(text = item.hotel, fontSize = 14.sp, color = Color.Gray)
+                            }
+                            Text(text = "Success", color = Color(0xFF4CAF50), fontWeight = FontWeight.Medium)
+                        }
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    auth.signOut()
+                    onLogoutClick()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(text = "Logout", color = Color.Black)
+            }
         }
-
-        Spacer(modifier = Modifier.height(30.dp))
-
-        Button(
-            onClick = {
-                auth.signOut()
-                onLogoutClick()
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Logout", fontSize = 18.sp)
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        BottomBar(
-            onHomeClick = onHomeClick,
-            onAlertClick = onAlertClick,
-            onProfileClick = { }
-        )
     }
 }
