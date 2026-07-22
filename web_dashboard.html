@@ -3,115 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Service - Official Web</title>
+    <title>Food Service App - Web</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --primary: #FF5722; }
-        body { margin: 0; background: #121212; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        .phone { width: 375px; height: 780px; background: #F8F9FA; border: 10px solid #333; border-radius: 40px; position: relative; overflow: hidden; }
-        .screen { display: none; height: 100%; width: 100%; position: absolute; flex-direction: column; overflow-y: auto; }
-        .screen.active { display: flex !important; }
-        #splash { background: var(--primary); color: white; justify-content: center; align-items: center; z-index: 5000; }
-        #login { background: linear-gradient(180deg, #FF5722 0%, #E64A19 100%); justify-content: center; align-items: center; padding: 30px; }
-        .bottom-nav { height: 70px; background: white; border-top: 1px solid #eee; display: flex; position: absolute; bottom: 0; width: 100%; z-index: 1000; }
-        .nav-tab { flex: 1; text-align: center; font-size: 10px; color: #999; padding-top: 12px; cursor: pointer; }
+        :root { --primary: #FF5722; --bg: #F8F9FA; }
+        body { margin: 0; background: #121212; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
+        .phone { width: 375px; height: 750px; background: white; border: 10px solid #333; border-radius: 40px; position: relative; overflow: hidden; }
+        .screen { display: none; height: 100%; width: 100%; position: absolute; flex-direction: column; overflow-y: auto; background: var(--bg); }
+        .active { display: flex !important; }
+        #splash { background: var(--primary); color: white; justify-content: center; align-items: center; z-index: 5000; text-align: center; }
+        #login { padding: 30px; justify-content: center; align-items: center; background: linear-gradient(180deg, #FF5722 0%, #E64A19 100%); }
+        .card { background: white; margin: 15px; padding: 20px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
+        .btn { background: var(--primary); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; outline: none; box-sizing: border-box; }
+        .bottom-nav { position: absolute; bottom: 0; width: 100%; height: 70px; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-tab { color: #999; font-size: 10px; text-align: center; cursor: pointer; }
         .nav-tab.active { color: var(--primary); }
-        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .nav-tab i { font-size: 20px; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
     <div class="phone">
-        <!-- SPLASH -->
+        <!-- 1. SPLASH -->
         <div id="splash" class="screen active">
-            <i class="fas fa-utensils text-7xl mb-4"></i>
-            <h1 class="text-2xl font-bold tracking-tighter">FOOD SERVICE</h1>
-            <p class="text-xs mt-10 opacity-50">Checking Auth Status...</p>
+            <i class="fas fa-utensils" style="font-size: 70px; margin-bottom: 20px;"></i>
+            <h2 style="letter-spacing: 2px;">FOOD SERVICE</h2>
+            <button id="skip-btn" onclick="startNow()" style="margin-top: 50px; background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 10px 20px; border-radius: 20px; cursor: pointer; display: none;">ENTER APP</button>
         </div>
 
-        <!-- LOGIN -->
+        <!-- 2. LOGIN -->
         <div id="login" class="screen">
-            <div class="bg-white p-8 rounded-3xl w-full text-center shadow-2xl">
-                <h2 class="text-2xl font-bold mb-6">Login</h2>
-                <input type="email" id="email" placeholder="Email" class="w-full p-4 border rounded-xl mb-4 outline-none focus:border-orange-500">
-                <input type="password" id="pass" placeholder="Password" class="w-full p-4 border rounded-xl mb-6 outline-none focus:border-orange-500">
-                <button onclick="doLogin()" class="w-full bg-orange-500 text-white p-4 rounded-xl font-bold">LOGIN</button>
+            <div style="background: white; padding: 30px; border-radius: 30px; text-align: center; width: 90%;">
+                <h2 style="margin:0;">Login</h2>
+                <input type="email" id="email" class="input" placeholder="Email (hoteladmin@gmail.com)">
+                <input type="password" id="pass" class="input" placeholder="Password">
+                <button class="btn" onclick="doLogin()">LOGIN</button>
             </div>
         </div>
 
-        <!-- HOME -->
+        <!-- 3. HOME -->
         <div id="home" class="screen">
-            <div class="p-6 bg-white border-b sticky top-0 z-50"><h1 class="text-xl font-bold">Nearby Food</h1></div>
-            <div id="food-list" class="p-4 pb-20"></div>
+            <div style="padding: 20px; background: white; border-bottom: 1px solid #eee; position: sticky; top:0; z-index:10;"><b>Nearby Food</b></div>
+            <div id="food-list" style="padding-bottom: 80px;"></div>
             <div class="bottom-nav">
-                <div class="nav-tab active" onclick="show('home')"><i class="fas fa-home block text-xl mb-1"></i>Home</div>
-                <div class="nav-tab" onclick="show('alerts')"><i class="fas fa-bell block text-xl mb-1"></i>Alerts</div>
-                <div class="nav-tab" onclick="show('profile')"><i class="fas fa-user block text-xl mb-1"></i>Profile</div>
+                <div class="nav-tab active" onclick="show('home')"><i class="fas fa-home"></i>Home</div>
+                <div class="nav-tab" onclick="show('alerts')"><i class="fas fa-bell"></i>Alerts</div>
+                <div class="nav-tab" onclick="show('profile')"><i class="fas fa-user"></i>Profile</div>
             </div>
         </div>
 
-        <!-- ADMIN -->
+        <!-- 4. ADMIN -->
         <div id="admin" class="screen">
-            <div class="p-6 bg-gray-900 text-white flex justify-between items-center sticky top-0 z-50">
-                <h1 class="font-bold">Admin Panel</h1>
-                <i class="fas fa-plus-circle text-orange-500 text-2xl" onclick="show('upload')"></i>
+            <div style="padding: 20px; background: #212529; color: white; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index:10;">
+                <b>Admin Panel</b>
+                <i class="fas fa-plus-circle" style="color: var(--primary); font-size: 24px;" onclick="show('upload')"></i>
             </div>
-            <div id="admin-list" class="p-4"></div>
+            <div id="admin-list" style="padding-bottom: 80px;"></div>
         </div>
 
-        <!-- UPLOAD -->
+        <!-- 5. UPLOAD -->
         <div id="upload" class="screen">
-            <div class="p-6 border-b flex items-center gap-4"><i class="fas fa-arrow-left" onclick="show('admin')"></i><b>Upload Food</b></div>
-            <div class="p-6 space-y-4">
-                <input type="text" id="up-n" placeholder="Food Name" class="w-full p-4 border rounded-xl">
-                <input type="text" id="up-q" placeholder="Quantity" class="w-full p-4 border rounded-xl">
-                <input type="text" id="up-h" placeholder="Hotel Name" class="w-full p-4 border rounded-xl">
-                <button onclick="doUpload()" class="w-full bg-orange-500 text-white p-4 rounded-xl font-bold">PUBLISH</button>
+            <div style="padding: 20px; border-bottom: 1px solid #eee;"><i class="fas fa-arrow-left" onclick="show('admin')" style="margin-right: 15px;"></i><b>Upload Food</b></div>
+            <div style="padding: 20px;">
+                <input type="text" id="up-n" class="input" placeholder="Food Name">
+                <input type="text" id="up-q" class="input" placeholder="Quantity">
+                <input type="text" id="up-h" class="input" placeholder="Hotel Name">
+                <button class="btn" onclick="doUpload()">PUBLISH</button>
             </div>
         </div>
 
-        <!-- ALERTS -->
+        <!-- 6. ALERTS -->
         <div id="alerts" class="screen">
-            <div class="p-6 border-b"><b>Notifications</b></div>
-            <div id="notif-list" class="p-4"></div>
-            <div id="nav-clone-1" class="bottom-nav"></div>
+            <div style="padding: 20px; border-bottom: 1px solid #eee;"><b>Notifications</b></div>
+            <div id="notif-list" style="padding: 20px;"></div>
+            <div id="nav-c1" class="bottom-nav"></div>
         </div>
 
-        <!-- PROFILE -->
+        <!-- 7. PROFILE -->
         <div id="profile" class="screen">
-            <div class="p-6 border-b"><b>My Profile</b></div>
-            <div class="p-6 text-center">
-                <div class="w-20 h-20 bg-orange-500 text-white rounded-full mx-auto flex items-center justify-center text-3xl font-bold mb-4" id="u-icon">U</div>
-                <h3 id="u-email" class="font-bold">User</h3>
-                <button onclick="auth.signOut().then(()=>location.reload())" class="mt-10 text-red-500 font-bold">LOGOUT</button>
+            <div style="padding: 20px; border-bottom: 1px solid #eee;"><b>My Profile</b></div>
+            <div style="padding: 30px; text-align: center;">
+                <div style="width:80px; height:80px; background: var(--primary); color:white; border-radius:50%; margin:auto; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:bold;" id="u-icon">U</div>
+                <h3 id="u-email" style="margin-top:15px;">User</h3>
+                <button onclick="auth.signOut().then(()=>location.reload())" style="color: red; background: none; border: none; font-weight: bold; margin-top: 30px; cursor: pointer;">LOGOUT</button>
             </div>
-            <div id="nav-clone-2" class="bottom-nav"></div>
+            <div id="nav-c2" class="bottom-nav"></div>
         </div>
     </div>
 
     <script>
-        const firebaseConfig = {
+        const config = {
             apiKey: "AIzaSyApshLAqhNDOATm-4aBFrJHDwUlVzbFJwQ",
-            authDomain: "foodserviceapp-ee902.firebaseapp.com", // CORRECTED
+            authDomain: "foodserviceapp-ee902.firebaseapp.com",
             projectId: "foodserviceapp-ee902",
             appId: "1:195486608103:android:df2c7812d6713926f4d042"
         };
-        firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(config);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // Show skip button after 4s
+        setTimeout(() => { document.getElementById('skip-btn').style.display = 'inline-block'; }, 4000);
+
         function show(id) {
+            console.log("Showing screen:", id);
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+
             if(['home', 'alerts', 'profile'].includes(id)) {
                 const nav = document.querySelector('#home .bottom-nav').innerHTML;
-                document.getElementById('nav-clone-1').innerHTML = nav;
-                document.getElementById('nav-clone-2').innerHTML = nav;
-                // Highlight active
+                document.getElementById('nav-c1').innerHTML = nav;
+                document.getElementById('nav-c2').innerHTML = nav;
                 const idx = id==='home'?0:id==='alerts'?1:2;
                 document.querySelectorAll('.bottom-nav').forEach(b => {
                     [...b.children].forEach(c => c.classList.remove('active'));
@@ -120,19 +126,20 @@
             }
         }
 
-        // AUTO-ENTER LOGIC
-        auth.onAuthStateChanged(user => {
-            console.log("Auth State Changed:", user);
-            setTimeout(() => {
-                document.getElementById('splash').classList.remove('active');
+        function startNow() {
+            document.getElementById('splash').classList.remove('active');
+            auth.onAuthStateChanged(user => {
                 if (user) {
                     document.getElementById('u-email').innerText = user.email;
                     document.getElementById('u-icon').innerText = user.email[0].toUpperCase();
                     user.email === 'hoteladmin@gmail.com' ? show('admin') : show('home');
                     startSync();
                 } else { show('login'); }
-            }, 2000);
-        });
+            });
+        }
+
+        // Auto-entry
+        setTimeout(startNow, 2000);
 
         async function doLogin() {
             const e = document.getElementById('email').value;
@@ -147,24 +154,16 @@
                 snap.forEach(doc => {
                     const f = doc.data(), id = doc.id;
                     const card = `<div class="card">
-                        <span class="float-right text-[10px] font-bold ${f.status==='available'?'text-green-500':'text-red-500'}">${f.status.toUpperCase()}</span>
-                        <h3 class="font-bold">${f.foodName}</h3>
-                        <p class="text-sm text-gray-500">📍 ${f.hotelName}</p>
-                        ${f.status==='available'?'<button class="w-full mt-4 bg-orange-500 text-white py-2 rounded-lg text-xs font-bold" onclick="claim(\''+id+'\',\''+f.foodName+'\',\''+f.hotelName+'\')">CLAIM</button>':''}
+                        <span style="float:right; font-size:10px; font-weight:bold; color:${f.status==='available'?'green':'red'}">${f.status.toUpperCase()}</span>
+                        <h3 style="margin:0;">${f.foodName}</h3>
+                        <p style="color:#666; font-size:14px; margin:5px 0;">📍 ${f.hotelName}</p>
+                        ${f.status==='available'?'<button class="btn" style="padding:8px; font-size:12px;" onclick="claim(\''+id+'\',\''+f.foodName+'\',\''+f.hotelName+'\')">CLAIM</button>':''}
                     </div>`;
                     if(f.status === 'available') h.innerHTML += card;
-                    a.innerHTML += `<div class="card flex justify-between items-center">
+                    a.innerHTML += `<div class="card" style="display:flex; justify-content:space-between; align-items:center;">
                         <div><b>${f.foodName}</b><br><small>${f.status}</small></div>
-                        <i class="fas fa-trash text-red-400" onclick="db.collection('foods').doc('${id}').delete()"></i>
+                        <i class="fas fa-trash" style="color:red; cursor:pointer;" onclick="db.collection('foods').doc('${id}').delete()"></i>
                     </div>`;
-                });
-            });
-
-            db.collection("notifications").orderBy("time", "desc").limit(5).onSnapshot(snap => {
-                const l = document.getElementById('notif-list'); l.innerHTML = "";
-                snap.forEach(doc => {
-                    const n = doc.data();
-                    l.innerHTML += `<div class="card border-l-4 border-orange-500"><b>${n.title}</b><p class="text-xs">${n.message}</p></div>`;
                 });
             });
         }
@@ -172,8 +171,7 @@
         async function claim(id, name, hotel) {
             await db.collection("foods").doc(id).update({ status: 'claimed' });
             await db.collection("claimedFoods").add({ foodName: name, hotelName: hotel, user: auth.currentUser.email, time: Date.now() });
-            await db.collection("notifications").add({ title: "Claimed!", message: name + " claimed by " + auth.currentUser.email, time: Date.now() });
-            alert("Food Claimed Successfully!");
+            alert("Claimed!");
         }
 
         async function doUpload() {
