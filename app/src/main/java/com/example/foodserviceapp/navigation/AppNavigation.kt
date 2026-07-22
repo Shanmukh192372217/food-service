@@ -85,10 +85,22 @@ fun AppNavigation() {
         }
 
         composable("admin") {
-
             AdminUploadScreen(
                 onUploadClick = {
-                    navController.navigate("uploadsuccess")
+                    navController.navigate("admindashboard")
+                },
+                onDashboardClick = {
+                    navController.navigate("admindashboard")
+                }
+            )
+        }
+
+        composable("edit/{foodId}") { backStackEntry ->
+            val foodId = backStackEntry.arguments?.getString("foodId")
+            AdminUploadScreen(
+                foodId = foodId,
+                onUploadClick = {
+                    navController.navigate("admindashboard")
                 },
                 onDashboardClick = {
                     navController.navigate("admindashboard")
@@ -97,7 +109,11 @@ fun AppNavigation() {
         }
 
         composable("admindashboard") {
-            AdminDashboardScreen()
+            AdminDashboardScreen(
+                onEditClick = { foodId ->
+                    navController.navigate("edit/$foodId")
+                }
+            )
         }
 
         composable("notifications") {

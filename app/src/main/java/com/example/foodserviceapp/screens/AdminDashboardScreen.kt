@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,162 +26,94 @@ data class AdminFoodItem(
     val status: String
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminDashboardScreen() {
+fun AdminDashboardScreen(
+    onEditClick: (String) -> Unit
+) {
     val db = FirebaseFirestore.getInstance()
     var foodList by remember { mutableStateOf(listOf<AdminFoodItem>()) }
-    
-    // ... rest of state
-    val totalFoods = foodList.size
-    val availableFoods = foodList.count { it.status == "available" }
-    val claimedFoods = foodList.count { it.status == "claimed" }
+    var selectedTab by remember { mutableIntStateOf(0) }
+
     LaunchedEffect(Unit) {
-        db.collection("foods")
-            .addSnapshotListener { result, error ->
-
-                if (error != null || result == null) {
-                    return@addSnapshotListener
-                }
-
-                val items = mutableListOf<AdminFoodItem>()
-
-                for (document in result) {
-                    items.add(
-                        AdminFoodItem(
-                            id = document.id,
-                            foodName = document.getString("foodName") ?: "",
-                            quantity = document.getString("quantity") ?: "",
-                            expiry = document.getString("expiry") ?: "",
-                            hotelName = document.getString("hotelName") ?: "",
-                            status = document.getString("status") ?: ""
-                        )
-                    )
-                }
-
-                foodList = items
+        db.collection("foods").addSnapshotListener { result, error ->
+            if (error != null || result == null) return@addSnapshotListener
+            foodList = result.map { doc ->
+                AdminFoodItem(
+                    id = doc.id, foodName = doc.getString("foodName") ?: "",
+                    quantity = doc.getString("quantity") ?: "", expiry = doc.getString("expiry") ?: "",
+                    hotelName = doc.getString("hotelName") ?: "", status = doc.getString("status") ?: ""
+                )
             }
+        }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-            .padding(16.dp)
-    ) {
+    val available = foodList.filter { it.status == "available" }
+    val claimed = foodList.filter { it.status == "claimed" }
 
-        Text(
-            text = "Admin Dashboard",
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+    Scaffold(
+        topBar = { TopAppBar(title = { Text("Admin Console", fontWeight = FontWeight.Bold) }) }
+    ) { padding ->
+        Column(modifier = Modifier.padding(padding).fillMaxSize().background(Color(0xFFF8F9FA))) {
+            
+            // Statistics Card
             Card(
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(16.dp)
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF212529))
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text("Total")
-                    Text("$totalFoods", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Row(modifier = Modifier.padding(20.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    StatItem("Total", "${foodList.size}")
+                    StatItem("Claimed", "${claimed.size}")
+                    StatItem("Impact", "High")
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Card(
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text("Available")
-                    Text("$availableFoods", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                }
+            TabRow(selectedTabIndex = selectedTab, containerColor = Color.White) {
+                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Active") })
+                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("History") })
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Card(
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text("Claimed")
-                    Text("$claimedFoods", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                }
+            if (selectedTab == 0) {
+                AdminList(available, onEdit = onEditClick, onDelete = { db.collection("foods").document(it).delete() })
+            } else {
+                AdminList(claimed, isHistory = true, onDelete = { db.collection("foods").document(it).delete() })
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = "Uploaded Foods",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold
-        )
+@Composable
+fun StatItem(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(label, color = Color.Gray, fontSize = 12.sp)
+        Text(value, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+    }
+}
 
-        Spacer(modifier = Modifier.height(16.dp))
-        if (foodList.isEmpty()) {
-
-            Text(
-                text = "No Foods Uploaded Yet",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Upload food to see data here."
-            )
-
-        } else {
+@Composable
+fun AdminList(list: List<AdminFoodItem>, isHistory: Boolean = false, onEdit: (String) -> Unit = {}, onDelete: (String) -> Unit) {
+    if (list.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("No data found", color = Color.Gray)
         }
-        LazyColumn {
-
-            items(foodList) { food ->
-
+    } else {
+        LazyColumn(modifier = Modifier.padding(16.dp)) {
+            items(list) { food ->
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    elevation = CardDefaults.cardElevation(8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
-
-                    Column(
-                        modifier = Modifier.padding(18.dp)
-                    ) {
-
-                        Text(
-                            text = food.foodName,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(text = "Hotel: ${food.hotelName}")
-                        Text(text = "Quantity: ${food.quantity}")
-                        Text(text = "Available Till: ${food.expiry}")
-                        Text(text = "Status: ${food.status}")
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        IconButton(
-                            onClick = {
-                                db.collection("foods").document(food.id).delete()
-                            },
-                            modifier = Modifier.align(Alignment.End)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete",
-                                tint = Color.Red
-                            )
+                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(food.foodName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("${food.quantity} • Exp: ${food.expiry}", color = Color.Gray)
                         }
+                        if (!isHistory) {
+                            IconButton(onClick = { onEdit(food.id) }) { Icon(Icons.Default.Edit, null, tint = Color.Blue) }
+                        }
+                        IconButton(onClick = { onDelete(food.id) }) { Icon(Icons.Default.Delete, null, tint = Color.Red) }
                     }
                 }
             }

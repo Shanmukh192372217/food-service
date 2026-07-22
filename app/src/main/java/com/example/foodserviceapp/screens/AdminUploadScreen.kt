@@ -27,6 +27,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun AdminUploadScreen(
+    foodId: String? = null,
     onUploadClick: () -> Unit,
     onDashboardClick: () -> Unit
 ) {
@@ -34,174 +35,86 @@ fun AdminUploadScreen(
     var quantity by remember { mutableStateOf("") }
     var expiry by remember { mutableStateOf("") }
     var hotelName by remember { mutableStateOf("") }
-    
     var latitude by remember { mutableDoubleStateOf(0.0) }
     var longitude by remember { mutableDoubleStateOf(0.0) }
-    var locationText by remember { mutableStateOf("Location not set") }
     
     var isLoading by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val db = FirebaseFirestore.getInstance()
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            LocationHelper.getCurrentLocation(context) { location ->
-                if (location != null) {
-                    latitude = location.latitude
-                    longitude = location.longitude
-                    locationText = "Location Set: ${String.format("%.4f", latitude)}, ${String.format("%.4f", longitude)}"
-                }
+    LaunchedEffect(foodId) {
+        if (foodId != null) {
+            db.collection("foods").document(foodId).get().addOnSuccessListener { doc ->
+                foodName = doc.getString("foodName") ?: ""
+                quantity = doc.getString("quantity") ?: ""
+                expiry = doc.getString("expiry") ?: ""
+                hotelName = doc.getString("hotelName") ?: ""
+                latitude = doc.getDouble("latitude") ?: 0.0
+                longitude = doc.getDouble("longitude") ?: 0.0
             }
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
-            .padding(20.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Text(
-            text = "Upload New Food Item",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF212529)
-        )
-        Text(text = "Share food with coordinates for accuracy", color = Color.Gray)
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
+    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF8F9FA)).padding(20.dp).verticalScroll(rememberScrollState())) {
+        Text(text = if (foodId == null) "Upload New Food" else "Edit Food Item", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        
         Spacer(modifier = Modifier.height(24.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(2.dp)
-        ) {
+        Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
             Column(modifier = Modifier.padding(16.dp)) {
-                OutlinedTextField(
-                    value = foodName,
-                    onValueChange = { foodName = it },
-                    label = { Text("Food Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-
+                OutlinedTextField(value = foodName, onValueChange = { foodName = it }, label = { Text("Food Name") }, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(value = quantity, onValueChange = { quantity = it }, label = { Text("Quantity") }, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(value = expiry, onValueChange = { expiry = it }, label = { Text("Expiry Time") }, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(value = hotelName, onValueChange = { hotelName = it }, label = { Text("Hotel Name") }, modifier = Modifier.fillMaxWidth())
+                
                 Spacer(modifier = Modifier.height(16.dp))
 
-                OutlinedTextField(
-                    value = quantity,
-                    onValueChange = { quantity = it },
-                    label = { Text("Quantity") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = expiry,
-                    onValueChange = { expiry = it },
-                    label = { Text("Available Till") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = hotelName,
-                    onValueChange = { hotelName = it },
-                    label = { Text("Hotel Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Location Fetcher
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = {
-                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                                LocationHelper.getCurrentLocation(context) { location ->
-                                    if (location != null) {
-                                        latitude = location.latitude
-                                        longitude = location.longitude
-                                        locationText = "Location Set: ${String.format("%.4f", latitude)}, ${String.format("%.4f", longitude)}"
-                                    }
-                                }
-                            } else {
-                                permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                Button(
+                    onClick = {
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                            LocationHelper.getCurrentLocation(context) { loc ->
+                                if (loc != null) { latitude = loc.latitude; longitude = loc.longitude }
                             }
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE9ECEF), contentColor = Color.Black)
-                    ) {
-                        Icon(Icons.Default.MyLocation, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Get My Location")
-                    }
+                        } else { permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE9ECEF), contentColor = Color.Black)
+                ) {
+                    Icon(Icons.Default.MyLocation, null)
+                    Text(" Update GPS Location")
                 }
-                Text(text = locationText, fontSize = 12.sp, color = if(latitude != 0.0) Color(0xFF2E7D32) else Color.Red, modifier = Modifier.padding(top = 4.dp))
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
         if (isLoading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color = Color(0xFFFF5722))
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
         } else {
             Button(
                 onClick = {
-                    if (foodName.isEmpty() || quantity.isEmpty() || hotelName.isEmpty() || latitude == 0.0) {
-                        Toast.makeText(context, "Please fill all fields and set location", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
                     isLoading = true
-                    
-                    val foodData = hashMapOf(
-                        "foodName" to foodName,
-                        "quantity" to quantity,
-                        "expiry" to expiry,
-                        "hotelName" to hotelName,
-                        "latitude" to latitude,
-                        "longitude" to longitude,
-                        "status" to "available",
-                        "createdAt" to System.currentTimeMillis()
+                    val data = hashMapOf(
+                        "foodName" to foodName, "quantity" to quantity, "expiry" to expiry,
+                        "hotelName" to hotelName, "latitude" to latitude, "longitude" to longitude,
+                        "status" to "available", "updatedAt" to System.currentTimeMillis()
                     )
-
-                    db.collection("foods")
-                        .add(foodData)
-                        .addOnSuccessListener {
-                            isLoading = false
-                            onUploadClick()
-                        }
-                        .addOnFailureListener {
-                            isLoading = false
-                            Toast.makeText(context, "Upload Failed", Toast.LENGTH_SHORT).show()
-                        }
+                    
+                    val task = if (foodId == null) db.collection("foods").add(data) 
+                               else db.collection("foods").document(foodId).set(data)
+                    
+                    task.addOnSuccessListener { onUploadClick() }
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5722))
             ) {
-                Text(text = "Publish Food", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(if (foodId == null) "Publish Food" else "Save Changes")
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextButton(
-            onClick = onDashboardClick,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        ) {
-            Text("Back to Dashboard", color = Color.Gray)
         }
     }
 }
