@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "195486608103",
+    "project_id": "foodserviceapp-ee902",
+    "storage_bucket": "foodserviceapp-ee902.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:195486608103:android:df2c7812d6713926f4d042",
+        "android_client_info": {
+          "package_name": "com.example.foodserviceapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApshLAqhNDOATm-4aBFrJHDwUlVzbFJwQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
