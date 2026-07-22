@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun MapScreen() {
+fun MapScreen(hotelName: String) {
 
     val context = LocalContext.current
 
@@ -59,7 +59,7 @@ fun MapScreen() {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Hotel: Paradise Hotel",
+            text = "Hotel: $hotelName",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold
         )
@@ -80,7 +80,7 @@ fun MapScreen() {
 
         Button(
             onClick = {
-                val uri = Uri.parse("geo:0,0?q=Paradise Hotel")
+                val uri = Uri.parse("geo:0,0?q=$hotelName")
                 val intent = Intent(Intent.ACTION_VIEW, uri)
                 intent.setPackage("com.google.android.apps.maps")
                 try {
@@ -88,7 +88,7 @@ fun MapScreen() {
                 } catch (_: Exception) {
                     val webIntent = Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse("https://www.google.com/maps/search/?api=1&query=Paradise Hotel")
+                        Uri.parse("https://www.google.com/maps/search/?api=1&query=$hotelName")
                     )
                     context.startActivity(webIntent)
                 }

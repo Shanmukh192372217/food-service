@@ -14,6 +14,8 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun ClaimSuccessScreen(
+    hotelName: String,
+    foodName: String,
     onMapClick: () -> Unit,
     onHomeClick: () -> Unit
 ){
@@ -48,14 +50,14 @@ fun ClaimSuccessScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Hotel: Paradise Hotel",
+                    text = "Hotel: $hotelName",
                     fontSize = 20.sp
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Food: Chicken Biryani"
+                    text = "Food: $foodName"
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))

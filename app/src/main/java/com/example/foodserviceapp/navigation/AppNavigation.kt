@@ -59,17 +59,24 @@ fun AppNavigation() {
 
             FoodDetailScreen(
                 foodId = foodId,
-                onClaimClick = {
-                    navController.navigate("claim")
+                onClaimClick = { hotel, food ->
+                    navController.navigate("claim/$hotel/$food")
+                },
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }
 
-        composable("claim") {
+        composable("claim/{hotel}/{food}") { backStackEntry ->
+            val hotel = backStackEntry.arguments?.getString("hotel") ?: ""
+            val food = backStackEntry.arguments?.getString("food") ?: ""
 
             ClaimSuccessScreen(
+                hotelName = hotel,
+                foodName = food,
                 onMapClick = {
-                    navController.navigate("map")
+                    navController.navigate("map/$hotel")
                 },
                 onHomeClick = {
                     navController.navigate("home")
@@ -124,8 +131,9 @@ fun AppNavigation() {
                 }
             )
         }
-        composable("map") {
-            MapScreen()
+        composable("map/{hotel}") { backStackEntry ->
+            val hotel = backStackEntry.arguments?.getString("hotel") ?: ""
+            MapScreen(hotelName = hotel)
         }
         composable("uploadsuccess") {
             UploadSuccessScreen(
