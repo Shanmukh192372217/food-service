@@ -118,16 +118,7 @@
             <div class="bottom-nav" id="nav-placeholder-2"></div>
         </div>
 
-        <!-- 8. SUCCESS SCREEN (ID: success-screen) -->
-        <div id="success-screen" class="screen" style="justify-content:center; align-items:center; text-align:center; padding:30px;">
-            <i class="fas fa-check-circle" style="font-size: 80px; color: #4CAF50; margin-bottom: 20px;"></i>
-            <h2>Claimed Successfully!</h2>
-            <p id="success-hotel-text" style="color:var(--primary); font-weight:bold;"></p>
-            <button id="btn-open-maps" class="btn btn-primary" style="margin-top:30px; background:black;">OPEN GOOGLE MAPS</button>
-            <button id="btn-success-home" class="btn" style="background:#eee; margin-top:10px;" onclick="navigateTo('home-screen')">GO HOME</button>
-        </div>
-
-        <!-- 9. DETAIL MODAL (ID: detail-modal) -->
+        <!-- 8. DETAIL MODAL (ID: detail-modal) -->
         <div id="detail-overlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.5); z-index:500; align-items:flex-end;">
             <div style="background:white; width:100%; padding:30px; border-radius:30px 30px 0 0; animation: slideUp 0.3s ease;">
                 <h2 id="det-food-name">Food</h2>
@@ -160,14 +151,12 @@
 
             if(['home-screen', 'alerts-screen', 'profile-screen'].includes(id)) {
                 const nav = document.querySelector('#home-screen .bottom-nav').innerHTML;
-                if(document.getElementById('nav-placeholder-1')) document.getElementById('nav-placeholder-1').innerHTML = nav;
-                if(document.getElementById('nav-placeholder-2')) document.getElementById('nav-placeholder-2').innerHTML = nav;
+                document.getElementById('nav-placeholder-1').innerHTML = nav;
+                document.getElementById('nav-placeholder-2').innerHTML = nav;
                 const idx = id === 'home-screen' ? 0 : id === 'alerts-screen' ? 1 : 2;
                 document.querySelectorAll('.bottom-nav').forEach(bn => {
-                    if(bn.children.length > 0) {
-                        [...bn.children].forEach(c => c.classList.remove('active'));
-                        bn.children[idx].classList.add('active');
-                    }
+                    [...bn.children].forEach(c => c.classList.remove('active'));
+                    bn.children[idx].classList.add('active');
                 });
             }
         }
@@ -245,13 +234,7 @@
             await db.collection("foods").doc(selectedId).update({ status: 'claimed' });
             await db.collection("claimedFoods").add({ foodName: name, hotelName: hotel, user: auth.currentUser.email, time: Date.now() });
             await db.collection("notifications").add({ title: "Claimed!", message: name + " claimed", time: Date.now() });
-
-            closeDetails();
-            document.getElementById('success-hotel-text').innerText = "Hotel: " + hotel;
-            document.getElementById('btn-open-maps').onclick = () => {
-                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hotel)}`, '_blank');
-            };
-            navigateTo('success-screen');
+            alert("Claimed!"); closeDetails();
         }
 
         async function doUpload() {
