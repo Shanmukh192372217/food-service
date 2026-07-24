@@ -1,20 +1,36 @@
-# Food Service App
+# Food Service E2E Automation Framework
 
-A mobile application for managing and finding nearby available food.
+This is a production-ready Selenium WebDriver framework built with Node.js and Mocha.
 
 ## Features
-- View nearby available food items from hotels.
-- Real-time updates using Firebase Firestore.
-- Admin dashboard for uploading food items.
-- Notifications and Profile management.
+- **POM Architecture**: Organized Page Object Model for scalability.
+- **Excel Reporting**: Automatic generation of `E2E_Report.xlsx` with pass/fail styling.
+- **CI/CD Integrated**: Fully configured with GitHub Actions.
+- **Data Driven**: Supports hundreds of test scenarios dynamically.
+- **Automatic Failure Handling**: Captures screenshots and logs on every failure.
 
-## Tech Stack
-- **Language:** Kotlin
-- **UI Framework:** Jetpack Compose
-- **Backend:** Firebase (Firestore, Authentication)
-- **Navigation:** Compose Navigation
+## Prerequisites
+- Node.js (v16+)
+- Google Chrome / Edge / Firefox
 
 ## Setup
 1. Clone the repository.
-2. Add your `google-services.json` to the `app/` directory.
-3. Build and run the app.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+## Execution
+- **Run all tests (Headed):**
+  ```bash
+  npm test
+  ```
+- **Run in Headless mode (CI):**
+  ```bash
+  npm run test:headless
+  ```
+
+## Reports
+- **HTML:** Check `reports/E2E_HTML_Report.html`
+- **Excel:** Check `excel/E2E_Report.xlsx`
+- **Logs:** Check `logs/execution.log`

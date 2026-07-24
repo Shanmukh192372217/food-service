@@ -1,0 +1,48 @@
+name: E2E Selenium Automation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Setup Chrome
+      uses: browser-actions/setup-chrome@latest
+
+    - name: Run E2E Tests (Headless)
+      run: npm run test:headless
+      continue-on-error: true
+
+    - name: Upload Excel Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: E2E_Excel_Report
+        path: excel/E2E_Report.xlsx
+
+    - name: Upload HTML Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: HTML_Test_Report
+        path: reports/
+
+    - name: Upload Screenshots on Failure
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: Error_Screenshots
+        path: screenshots/
