@@ -5,12 +5,16 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha tests/**/*.test.js --timeout 60000 --reporter mochawesome --reporter-options reportDir=reports,reportFilename=E2E_HTML_Report",
+    "test:web": "mocha tests/web/**/*.test.js --timeout 60000 --reporter mochawesome",
+    "test:mobile": "mocha tests/mobile/**/*.test.js --timeout 120000 --reporter mochawesome",
     "test:chrome": "SET BROWSER=chrome&& npm test",
     "test:headless": "SET HEADLESS=true&& npm test",
     "test:cross-browser": "npm run test:chrome && npm run test:firefox && npm run test:edge"
   },
   "dependencies": {
     "selenium-webdriver": "^4.10.0",
+    "webdriverio": "^8.12.0",
+    "appium": "^2.0.1",
     "mocha": "^10.2.0",
     "chai": "^4.3.7",
     "exceljs": "^4.3.0",
