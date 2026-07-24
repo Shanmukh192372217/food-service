@@ -70,16 +70,19 @@ jobs:
         run: npm install
       - name: Run Selenium Tests
         run: npm run test:headless || true
-      - name: Upload Web Results
+      
+      - name: Prepare Test Case Artifacts
+        run: |
+          mkdir -p all_test_cases
+          cp *.xls all_test_cases/ || true
+          cp -r excel/* all_test_cases/ || true
+
+      - name: Upload All Test Cases Excel
         uses: actions/upload-artifact@v4
         with:
-          name: web-test-results
-          path: reports/
-      - name: Upload Excel Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: E2E-QA-Test-Report-Excel
-          path: excel/
+          name: E2E-Detailed-Test-Cases-Excel
+          path: all_test_cases/
+
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
         with:
