@@ -74,14 +74,15 @@ jobs:
       - name: Prepare Test Case Artifacts
         run: |
           mkdir -p all_test_cases
+          cp Master_1800_Test_Report.xls all_test_cases/ || true
           cp *.xls all_test_cases/ || true
           cp -r excel/* all_test_cases/ || true
 
-      - name: Upload All Test Cases Excel
+      - name: Upload Master Test Case Excel
         uses: actions/upload-artifact@v4
         with:
-          name: E2E-Detailed-Test-Cases-Excel
-          path: all_test_cases/
+          name: Master-1800-Test-Cases-Excel
+          path: all_test_cases/Master_1800_Test_Report.xls
 
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
